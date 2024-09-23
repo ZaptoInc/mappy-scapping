@@ -1,6 +1,8 @@
+const {downloadBrowsers} = require("puppeteer/internal/node/install.js");
 const pupperteer = require("puppeteer");
 const express = require("express");
 async function start() {
+  await downloadBrowsers()
   const app = express();
   const browser = await pupperteer.launch();
   async function scapper(point_a, point_b) {
