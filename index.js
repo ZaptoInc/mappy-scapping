@@ -45,6 +45,7 @@ async function start() {
       resp.length = -1;
       resp.time = -1;
       resp.status = false;
+      console.error(error)
     }
     response.send(resp);
   });
@@ -56,5 +57,3 @@ async function start() {
 }
 
 start();
-
-// scapper();

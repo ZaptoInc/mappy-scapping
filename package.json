@@ -1,6 +1,7 @@
 {
   "name": "mappy-scapping",
   "version": "1.0.0",
+  "bin":"index.js",
   "description": "",
   "main": "index.js",
   "scripts": {
