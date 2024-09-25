@@ -1,7 +1,7 @@
 {
   "name": "mappy-scapping",
   "version": "1.1.0",
-  "bin":"index.js",
+  "bin": "index.js",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.0",
+    "jstoxml": "^5.0.2",
     "puppeteer": "^23.4.0"
   }
 }

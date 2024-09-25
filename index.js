@@ -1,6 +1,7 @@
-const {downloadBrowsers} = require("puppeteer/internal/node/install.js");
+const { downloadBrowsers } = require("puppeteer/internal/node/install.js");
 const pupperteer = require("puppeteer");
 const express = require("express");
+const { toXML } = require("jstoxml");
 async function start() {
   await downloadBrowsers()
   const app = express();
@@ -32,24 +33,41 @@ async function start() {
     return { length, time };
   }
   app.get("/trajet/:source/:destination", async (request, response) => {
+    let format = "json"
+    if (request.query.format) format = request.query.format.toLocaleLowerCase()
     const source = request.params.source;
     const destination = request.params.destination;
     let resp = {
       source,
       destination,
+      length: -1,
+      time: -1,
+      status: false,
     };
-    try {
-      let scrap = await scapper(source, destination);
-      resp.length = scrap.length;
-      resp.time = scrap.time;
-      resp.status = true;
-    } catch (error) {
-      resp.length = -1;
-      resp.time = -1;
-      resp.status = false;
-      console.error(error)
+    if (format === "json" | format === "xml") {
+
+      try {
+        let scrap = await scapper(source, destination);
+        resp.length = scrap.length;
+        resp.time = scrap.time;
+        resp.status = true;
+      } catch (error) {
+        console.error(error)
+      }
+      if (format === "json") {
+        response.type('application/json');
+        response.send(resp);
+      } else if (format === "xml") {
+        response.type('application/xml');
+        response.send(toXML({data : resp}, {header : true}));
+      } else {
+        response.send(`Invalid format ${format}`);
+      }
+    } else {
+      response.send(`Invalid format ${format}`);
+      return
     }
-    response.send(resp);
+
   });
 
   const port = 8080;
