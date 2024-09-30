@@ -1,11 +1,28 @@
-const { downloadBrowsers } = require("puppeteer/internal/node/install.js");
-const pupperteer = require("puppeteer");
+const { install, resolveBuildId } = require('@puppeteer/browsers');
+const path = require('path');
+
+const puppeteer = require("puppeteer-core");
 const express = require("express");
 const { toXML } = require("jstoxml");
 async function start() {
-  await downloadBrowsers()
+  const browserName = 'chrome'
+  const platform = process.platform; // Get the platform (linux, win32, darwin)
+  const buildId = await resolveBuildId(browserName, platform, "stable"); // Get the default browser version Puppeteer expects
+  // Define the path where Chromium will be installed
+  const cacheDir = path.join(process.cwd(), '.local-chromium');
+
+  let installed = await install({
+    browser: browserName,
+    cacheDir,
+    buildId,
+  });
+
+  console.log(`Chromium installed in ${cacheDir}`);
+
   const app = express();
-  const browser = await pupperteer.launch();
+  const browser = await puppeteer.launch({
+    executablePath: installed.executablePath,
+  });
   async function scapper(point_a, point_b) {
     const page = await browser.newPage();
 
@@ -32,6 +49,9 @@ async function start() {
     page.close();
     return { length, time };
   }
+
+  let cache = {}
+
   app.get("/trajet/:source/:destination", async (request, response) => {
     let format = "json"
     if (request.query.format) format = request.query.format.toLocaleLowerCase()
@@ -47,7 +67,14 @@ async function start() {
     if (format === "json" | format === "xml") {
 
       try {
-        let scrap = await scapper(source, destination);
+        let scrap = undefined
+        if(cache[`${source}_${destination}`]) {
+            scrap = cache[`${source}_${destination}`]
+        } else {
+          scrap = await scapper(source, destination);
+          cache[`${source}_${destination}`] = scrap
+        }
+         
         resp.length = scrap.length;
         resp.time = scrap.time;
         resp.status = true;
